@@ -161,3 +161,27 @@ export async function getFollowUpQuestions(userInput: string, review: Review) {
     ? response.text
     : String(response);
 }
+
+export async function getReviewSummary(review: Review) {
+  const prompt = `
+    You are a helpful AI assistant summarizing reviews about places.
+
+    You will be given a conversation between a user and an AI assistant.
+    The user is describing their experience at a place.
+    The AI assistant is asking follow-up questions to gather more information.
+
+    Rewrite the conversation as a user generated review.
+    Try to include all the details that the user has shared.
+    Do not include any other text than the review.
+
+    Conversation:
+    ${review.comment}
+  `;
+
+  const response = await generateText({
+    model,
+    prompt,
+  });
+
+  return response.text;
+}
