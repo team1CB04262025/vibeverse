@@ -37,7 +37,10 @@ export default function Chat() {
           const nonNullReview = Object.fromEntries(
             Object.entries(data.review).filter(([, value]) => value !== null)
           );
-          console.log("data.review:", nonNullReview);
+          // Remove comment field from logging
+          delete nonNullReview.comment;
+          console.log("Current Review State");
+          console.log(JSON.stringify(nonNullReview, null, 2));
 
           // Get the latest user message
           const lastUserMessage = messages[messages.length - 1]?.content || "";

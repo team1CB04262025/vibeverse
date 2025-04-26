@@ -3,8 +3,12 @@ import { streamText } from "ai";
 import {
   extractReviewFromUserInput,
   getFollowUpQuestions,
+  getReviewSummary,
 } from "@/lib/llm/reviewsAgent";
 import { Review } from "@/db/reviews";
+import { insert } from "@orama/orama";
+import { reviewsDb } from "@/db";
+import { v4 as uuidv4 } from "uuid";
 
 const model = google("gemini-2.0-flash-001");
 
@@ -36,12 +40,14 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join(" ");
 
+    const PLACE_ID = "1";
+
     try {
       // Use the extractReviewFromUserInput function to analyze the user's message
       // If we have previous review state, use it as the starting point
       const previousReview = {
         id: null,
-        placeId: null,
+        placeId: PLACE_ID,
         userId: null,
         comment: null,
         overallRating: null,
@@ -83,18 +89,40 @@ export async function POST(req: Request) {
       const newReviewDataFiltered = Object.fromEntries(
         Object.entries(newReviewData).filter(([, value]) => value !== null)
       );
-      const reviewData = { ...previousReview, ...newReviewDataFiltered };
+      let reviewData = { ...previousReview, ...newReviewDataFiltered };
       // Check if review is complete (more non-null values than null values)
       const totalFields = Object.keys(reviewData).length;
       const nonNullFields = Object.values(reviewData).filter(
         (value) => value !== null
       ).length;
-      const isReviewComplete = nonNullFields > totalFields / 2.5;
+      const isReviewComplete = nonNullFields > totalFields / 2;
 
       let followUpQuestion;
 
       if (isReviewComplete) {
-        // If review is complete, set a thank you message instead of follow-up questions
+        const summary = await getReviewSummary(reviewData as unknown as Review);
+        reviewData.comment = summary;
+
+        // Remove null fields and ensure required fields are set
+        reviewData = Object.fromEntries(
+          Object.entries(reviewData).filter(([, value]) => value !== null)
+        );
+        reviewData.id = reviewData.id || uuidv4();
+        reviewData.createdAt = reviewData.createdAt || new Date().toISOString();
+        reviewData.updatedAt = new Date().toISOString();
+
+        try {
+          // Insert the review into the database
+          await insert(reviewsDb, reviewData as unknown as Review);
+          console.log("Review inserted into database:", reviewData.id);
+
+          // Uncomment for demo purposes
+          // persistAllDb()
+        } catch (error) {
+          console.error("Error inserting review into database:", error);
+        }
+
+        // Set a thank you message instead of follow-up questions
         followUpQuestion =
           "Thank you for sharing! Your review has been saved now.";
       } else {
