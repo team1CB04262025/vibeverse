@@ -42,7 +42,7 @@ export default function VisitPlacePage({
           </div>
         </div>
 
-      <div className="flex flex-col gap-4 w-[340px]">
+        <div className="flex flex-col gap-4 w-[340px]">
           <button
             onClick={() => setIsChatOpen(true)}
             className="cursor-pointer bg-indigo-900 text-white py-3 rounded-full font-semibold text-lg"
@@ -60,4 +60,3 @@ export default function VisitPlacePage({
     </div>
   );
 }
-
