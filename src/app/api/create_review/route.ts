@@ -17,11 +17,24 @@ export async function POST(req: Request) {
 
   // Test the review extraction functionality if requested
   if (extractReview) {
-    // Get the last user message
+    // Get the last user message and the previous AI follow-up question
     const lastUserMessage =
       messages.findLast(
         (msg: { role: string; content: string }) => msg.role === "user"
       )?.content || "";
+
+    // Find the previous AI follow-up question (which would be the message before the last user message)
+    const lastUserIndex = messages.findLastIndex(
+      (msg: { role: string; content: string }) => msg.role === "user"
+    );
+
+    const previousFollowUpQuestion =
+      lastUserIndex > 0 ? messages[lastUserIndex - 1]?.content || "" : "";
+
+    // Concatenate the previous follow-up question and the user's response
+    const contextualUserInput = [previousFollowUpQuestion, lastUserMessage]
+      .filter(Boolean)
+      .join(" ");
 
     try {
       // Use the extractReviewFromUserInput function to analyze the user's message
@@ -61,7 +74,7 @@ export async function POST(req: Request) {
       };
 
       const newReviewData = await extractReviewFromUserInput(
-        lastUserMessage,
+        contextualUserInput,
         "test_place_id",
         "test_user_id",
         previousReview // Use the existing review data as a starting point
@@ -71,7 +84,6 @@ export async function POST(req: Request) {
         Object.entries(newReviewData).filter(([, value]) => value !== null)
       );
       const reviewData = { ...previousReview, ...newReviewDataFiltered };
-
       // Check if review is complete (more non-null values than null values)
       const totalFields = Object.keys(reviewData).length;
       const nonNullFields = Object.values(reviewData).filter(
@@ -88,7 +100,7 @@ export async function POST(req: Request) {
       } else {
         // Generate follow-up questions for missing information
         followUpQuestion = await getFollowUpQuestions(
-          lastUserMessage,
+          contextualUserInput,
           reviewData as unknown as Review
         );
       }

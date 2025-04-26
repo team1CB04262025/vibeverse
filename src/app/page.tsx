@@ -33,11 +33,38 @@ export default function Chat() {
         const data = JSON.parse(responseText);
 
         if (data.review) {
-          console.log("data.review", data.review);
-          // Update the review state with new data
+          // Filter out null fields for logging
+          const nonNullReview = Object.fromEntries(
+            Object.entries(data.review).filter(([, value]) => value !== null)
+          );
+          console.log("data.review:", nonNullReview);
+
+          // Get the latest user message
+          const lastUserMessage = messages[messages.length - 1]?.content || "";
+
+          // Get follow-up question if available
+          const followUpText = data.followUpQuestion
+            ? typeof data.followUpQuestion === "object" &&
+              data.followUpQuestion.text
+              ? data.followUpQuestion.text
+              : String(data.followUpQuestion)
+            : "";
+
+          // Create concatenated comment with user input and follow-up
+          const currentComment = review.comment || "";
+          const newComment = currentComment
+            ? `${currentComment}\n\nUser: ${lastUserMessage}${
+                followUpText ? `\nAI: ${followUpText}` : ""
+              }`
+            : `User: ${lastUserMessage}${
+                followUpText ? `\nAI: ${followUpText}` : ""
+              }`;
+
+          // Update review with the concatenated comment and other data
           setReview((prevReview) => ({
             ...prevReview,
             ...data.review,
+            comment: newComment,
           }));
 
           // Update review completion status from API
@@ -94,7 +121,19 @@ export default function Chat() {
     handleSubmit(e);
   };
 
-  // console.log("Current review state:", review); // For debugging purposes
+  // Also update comment when user submits a new message
+  const handleFormSubmit = (e: FormEvent) => {
+    if (input.trim()) {
+      // Update comment with new user input before submission
+      setReview((prevReview) => ({
+        ...prevReview,
+        comment: prevReview.comment
+          ? `${prevReview.comment}\n\nUser: ${input}`
+          : `User: ${input}`,
+      }));
+    }
+    onSubmit(e);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-zinc-900">
@@ -147,7 +186,10 @@ export default function Chat() {
       </div>
 
       <div className="p-4 border-t border-gray-200 dark:border-zinc-800">
-        <form onSubmit={onSubmit} className="flex items-center space-x-2">
+        <form
+          onSubmit={handleFormSubmit}
+          className="flex items-center space-x-2"
+        >
           <input
             className="flex-1 p-3 border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={input}
