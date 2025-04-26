@@ -1,17 +1,14 @@
 import Image from "next/image";
+import { places } from "@/db/scripts/seedPlaces";
 
 export default function VisitPlacePage({
   params,
 }: {
   params: { placeId: string };
 }) {
-  // TODO: 실제로는 placeId로 DB에서 장소 정보를 불러와야 함
-  // 여기서는 예시/mock 데이터 사용
-  const place = {
-    name: "Victrola Coffee Roasters",
-    address: "300 Pine St Suite 100, Seattle, WA 98101",
-    imageUrl: "/images/victrola.jpg", // public/images 폴더에 이미지 필요
-  };
+  const place = places.find((p) => p.id === params.placeId);
+
+  if (!place) return <div>Place not found</div>;
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
@@ -32,7 +29,7 @@ export default function VisitPlacePage({
         </div>
         <div>
           <div className="font-bold text-lg">{place.name}</div>
-          <div className="text-gray-500 text-sm">{place.address}</div>
+          <div className="text-gray-500 text-sm">{place.address.formatted}</div>
         </div>
       </div>
       <div className="flex flex-col gap-4 w-[340px]">
