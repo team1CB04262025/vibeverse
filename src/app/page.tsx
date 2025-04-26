@@ -1,12 +1,68 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useRef, useEffect, FormEvent } from "react";
+import { useRef, useEffect, FormEvent, useState } from "react";
 import { Send } from "lucide-react";
+import { Review } from "@/db/reviews";
+import { Message } from "ai";
 
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat();
+  // Store review data that gets updated through conversation
+  const [review, setReview] = useState<Partial<Review>>({});
+  // console.log(review);
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    setMessages,
+  } = useChat({
+    api: "/api/chat",
+    body: {
+      reviewState: review, // Pass the current review state with each message
+    },
+    onResponse: async (response) => {
+      try {
+        // Check if we can parse JSON from the response
+        const responseText = await response.text();
+        const data = JSON.parse(responseText);
+
+        if (data.review) {
+          console.log("data.review", data.review);
+          // Update the review state with new data
+          setReview((prevReview) => ({
+            ...prevReview,
+            ...data.review,
+          }));
+
+          // If we have a follow-up question, add it as an assistant message
+          if (data.followUpQuestion) {
+            // Extract the question text - followUpQuestion might be a complex object
+            const questionText =
+              typeof data.followUpQuestion === "object" &&
+              data.followUpQuestion.text
+                ? data.followUpQuestion.text
+                : String(data.followUpQuestion);
+
+            const followupMessage: Message = {
+              id: Date.now().toString(),
+              role: "assistant",
+              content: questionText,
+              parts: [{ type: "text", text: questionText }],
+            };
+            setMessages((prevMessages) => [...prevMessages, followupMessage]);
+          }
+        }
+
+        // We return nothing to avoid adding a duplicate message
+        // as we're manually adding it above
+      } catch (error) {
+        // If not JSON, handle as regular response
+        console.error("Failed to parse response as JSON", error);
+      }
+    },
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom whenever messages change
@@ -17,6 +73,8 @@ export default function Chat() {
   const onSubmit = (e: FormEvent) => {
     handleSubmit(e);
   };
+
+  // console.log("Current review state:", review); // For debugging purposes
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-zinc-900">

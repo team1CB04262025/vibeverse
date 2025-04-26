@@ -1,7 +1,10 @@
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
-import { search, insert } from "@orama/orama";
-import { placesDb, reviewsDb, persistAllDb } from "@/db";
+import {
+  extractReviewFromUserInput,
+  getFollowUpQuestions,
+} from "@/lib/llm/reviewsAgent";
+import { Review } from "@/db/reviews";
 
 const model = google("gemini-2.0-flash-001");
 
@@ -9,53 +12,108 @@ const model = google("gemini-2.0-flash-001");
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages, reviewState } = await req.json();
+  console.log({ messages, reviewState });
+  const extractReview = true;
 
-  const placesSearchResult = search(placesDb, {
-    term: "Starbucks",
-  });
+  // Test the review extraction functionality if requested
+  if (extractReview) {
+    // Get the last user message
+    const lastUserMessage =
+      messages.findLast(
+        (msg: { role: string; content: string }) => msg.role === "user"
+      )?.content || "";
 
-  console.log(placesSearchResult);
+    try {
+      // Use the extractReviewFromUserInput function to analyze the user's message
+      // If we have previous review state, use it as the starting point
+      const previousReview = {
+        id: null,
+        placeId: null,
+        userId: null,
+        comment: null,
+        overallRating: null,
+        foodRating: null,
+        serviceRating: null,
+        atmosphereRating: null,
+        costPerPerson: null,
+        cleanlinessRating: null,
+        petFriendlinessRating: null,
+        wifiRating: null,
+        accessibilityRating: null,
+        parkingRating: null,
+        noiseLevel: null,
+        outdoorSeating: null,
+        petMenuAvailable: null,
+        creditCardAccepted: null,
+        alcoholServed: null,
+        reservationRequired: null,
+        kidsFriendly: null,
+        smokingAllowed: null,
+        veganOptions: null,
+        openingHoursAccuracy: null,
+        viewQuality: null,
+        staffFriendliness: null,
+        strollerAccessible: null,
+        waitTimeRating: null,
+        createdAt: null,
+        updatedAt: null,
+        ...reviewState,
+      };
 
-  const reviewsSearchResult = search(reviewsDb, {
-    term: "Starbucks",
-  });
+      const newReviewData = await extractReviewFromUserInput(
+        lastUserMessage,
+        "test_place_id",
+        "test_user_id",
+        previousReview // Use the existing review data as a starting point
+      );
 
-  console.log(reviewsSearchResult);
+      const newReviewDataFiltered = Object.fromEntries(
+        Object.entries(newReviewData).filter(([, value]) => value !== null)
+      );
+      const reviewData = { ...previousReview, ...newReviewDataFiltered };
+      console.log(reviewData);
+      // Generate follow-up questions for missing information
+      const followUpQuestion = await getFollowUpQuestions(
+        lastUserMessage,
+        reviewData as unknown as Review
+      );
 
-  const newPlaceId = insert(placesDb, {
-    id: `place_${Math.random().toString(36).substring(2, 15)}`,
-    name: `Starbucks ${Math.random().toString(36).substring(2, 15)}`,
-    rating: 4.5,
-    reviewCount: 100,
-  }) as string;
+      // Ensure followUpQuestion is a string or has a text property
+      const processedQuestion =
+        typeof followUpQuestion === "object" && followUpQuestion
+          ? followUpQuestion
+          : String(followUpQuestion);
 
-  const newReview = insert(reviewsDb, {
-    placeId: newPlaceId,
-    userId: "456",
-    rating: 5,
-    comment: "This is a test review",
-  });
+      // Return the extracted review data and follow-up question without saving to database
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Review successfully extracted",
+          review: reviewData,
+          followUpQuestion: processedQuestion,
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } catch (error) {
+      console.error("Error extracting review:", error);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Failed to extract review",
+          error: String(error),
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+  }
 
-  persistAllDb();
-
-  console.log("newPlaceId", newPlaceId);
-  console.log(newReview);
-
-  // messages is an array of user input and assistant response
-
-  // when we get another user input,
-  // we want to search our database for most relevant reviews
-  // const reviews = await db.search("reviews", userInput)
-
-  // we want to include the reviews in the next prompt
-  // const prompt = `
-  //   You are a helpful assistant that can answer questions and help with tasks.
-  //   Here are some reviews: ${reviews}
-  //   Here is the new user input: ${userInput}
-  // `
-  // then pass in the prompt to the model
-
+  // Default chat behavior
   const result = streamText({
     model,
     messages,
