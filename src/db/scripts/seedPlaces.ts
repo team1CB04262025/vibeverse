@@ -2,10 +2,11 @@ import { insert } from "@orama/orama";
 import { placesDb } from "../places";
 import { persistAllDb } from "@/db";
 
-const places = [
+export const places = [
   {
     id: "1",
     name: "The Pink Door",
+    imageUrl: "/images/pinkdoor.jpg",
     description:
       "Italian restaurant with cabaret shows and Elliott Bay terrace views.",
     address: {
@@ -38,6 +39,7 @@ const places = [
   {
     id: "2",
     name: "Caffè Zingaro",
+    imageUrl: "/images/zingaro.jpg",
     description:
       "Cozy coffee shop with great desserts and tea selection near Seattle Center.",
     address: {
