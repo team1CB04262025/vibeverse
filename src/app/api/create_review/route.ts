@@ -13,7 +13,6 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { messages, reviewState } = await req.json();
-  console.log({ messages, reviewState });
   const extractReview = true;
 
   // Test the review extraction functionality if requested
@@ -72,12 +71,27 @@ export async function POST(req: Request) {
         Object.entries(newReviewData).filter(([, value]) => value !== null)
       );
       const reviewData = { ...previousReview, ...newReviewDataFiltered };
-      console.log(reviewData);
-      // Generate follow-up questions for missing information
-      const followUpQuestion = await getFollowUpQuestions(
-        lastUserMessage,
-        reviewData as unknown as Review
-      );
+
+      // Check if review is complete (more non-null values than null values)
+      const totalFields = Object.keys(reviewData).length;
+      const nonNullFields = Object.values(reviewData).filter(
+        (value) => value !== null
+      ).length;
+      const isReviewComplete = nonNullFields > totalFields / 2.5;
+
+      let followUpQuestion;
+
+      if (isReviewComplete) {
+        // If review is complete, set a thank you message instead of follow-up questions
+        followUpQuestion =
+          "Thank you for sharing! Your review has been saved now.";
+      } else {
+        // Generate follow-up questions for missing information
+        followUpQuestion = await getFollowUpQuestions(
+          lastUserMessage,
+          reviewData as unknown as Review
+        );
+      }
 
       // Ensure followUpQuestion is a string or has a text property
       const processedQuestion =
@@ -92,6 +106,7 @@ export async function POST(req: Request) {
           message: "Review successfully extracted",
           review: reviewData,
           followUpQuestion: processedQuestion,
+          isReviewComplete: isReviewComplete,
         }),
         {
           headers: { "Content-Type": "application/json" },

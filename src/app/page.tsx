@@ -9,7 +9,11 @@ import { Message } from "ai";
 export default function Chat() {
   // Store review data that gets updated through conversation
   const [review, setReview] = useState<Partial<Review>>({});
-  // console.log(review);
+  // Animation state for loading dots
+  const [loadingDots, setLoadingDots] = useState(1);
+  // State to track if review is complete (now set by API)
+  const [isReviewComplete, setIsReviewComplete] = useState(false);
+
   const {
     messages,
     input,
@@ -18,7 +22,7 @@ export default function Chat() {
     isLoading,
     setMessages,
   } = useChat({
-    api: "/api/chat",
+    api: "/api/create_review",
     body: {
       reviewState: review, // Pass the current review state with each message
     },
@@ -35,6 +39,11 @@ export default function Chat() {
             ...prevReview,
             ...data.review,
           }));
+
+          // Update review completion status from API
+          if (data.isReviewComplete !== undefined) {
+            setIsReviewComplete(data.isReviewComplete);
+          }
 
           // If we have a follow-up question, add it as an assistant message
           if (data.followUpQuestion) {
@@ -69,6 +78,17 @@ export default function Chat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Animate loading dots
+  useEffect(() => {
+    if (!isLoading) return;
+
+    const interval = setInterval(() => {
+      setLoadingDots((dots) => (dots % 3) + 1);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const onSubmit = (e: FormEvent) => {
     handleSubmit(e);
@@ -116,6 +136,13 @@ export default function Chat() {
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="max-w-[80%] px-4 py-2 rounded-lg whitespace-pre-wrap bg-gray-200 dark:bg-zinc-800 text-gray-800 dark:text-gray-200 rounded-bl-none">
+              {".".repeat(loadingDots)}
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -126,12 +153,12 @@ export default function Chat() {
             value={input}
             placeholder="Type your message..."
             onChange={handleInputChange}
-            disabled={isLoading}
+            disabled={isLoading || isReviewComplete}
           />
           <button
             type="submit"
             className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input.trim() || isReviewComplete}
           >
             <Send size={18} />
           </button>
