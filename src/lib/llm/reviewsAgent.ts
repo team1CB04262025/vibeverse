@@ -185,3 +185,45 @@ export async function getReviewSummary(review: Review) {
 
   return response.text;
 }
+
+export async function getRecommandations(
+  userInput: string,
+  reviews: Review[] = []
+) {
+  const recommendationSchema = z.object({
+    recommendations: z.array(
+      z.object({
+        placeName: z.string(),
+        placeId: z.string(),
+        reason: z.string(),
+      })
+    ),
+  });
+
+  const prompt = `
+    You are a helpful AI assistant recommending places based on the user's input and reviews written by other users.
+
+    You will be given a user's input and a list of reviews about places.
+    Your task is to recommend places that match the user's input.
+
+    User's input: "${userInput}"
+
+    Reviews:
+    ${JSON.stringify(reviews)}
+
+    Return a structured list of recommended places with:
+    - placeName: The name of the recommended place
+    - placeId: The unique identifier for the place
+    - reason: Contextual information about why this place is recommended
+    `;
+
+  const { object } = await generateObject({
+    model,
+    schema: recommendationSchema,
+    prompt,
+  });
+
+  console.log("object", object);
+
+  return object;
+}
