@@ -7,6 +7,7 @@ import { Place } from "@/db/places";
 import { useChat } from "@ai-sdk/react";
 import { Message } from "ai";
 import { Review } from "@/db/reviews";
+import Link from "next/link";
 
 function TypingDots() {
   return (
@@ -30,6 +31,20 @@ export default function ReviewChatBox({
   // Review state
   const [review, setReview] = useState<Partial<Review>>({});
   const [isReviewComplete, setIsReviewComplete] = useState(false);
+
+  useEffect(() => {
+    if (isReviewComplete) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: Date.now().toString(),
+          role: "assistant",
+          content:
+            "Now that you had a great meal, would you like to get some coffee nearby?",
+        },
+      ]);
+    }
+  }, [isReviewComplete]);
 
   const {
     messages,
@@ -99,7 +114,6 @@ export default function ReviewChatBox({
           if (data.isReviewComplete !== undefined) {
             setIsReviewComplete(data.isReviewComplete);
           }
-
           // If we have a follow-up question, add it as an assistant message
           if (data.followUpQuestion) {
             // Extract the question text - followUpQuestion might be a complex object
@@ -194,6 +208,22 @@ export default function ReviewChatBox({
             </div>
           )}
           <div ref={messagesEndRef} />
+          {isReviewComplete && (
+            <div className="flex justify-start gap-4 pt-4 text-[15px]">
+              <button
+                className="cursor-pointer border border-[#353AF1] text-[#353AF1] rounded-md px-9 py-2 font-semibold"
+                onClick={onClose}
+              >
+                Not now
+              </button>
+
+              <Link href="/recommend/1" className="cursor-pointer">
+                <div className="bg-[#353AF1] text-white rounded-md px-12 py-2 font-semibold text-center">
+                  Yes!
+                </div>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* 입력창 */}

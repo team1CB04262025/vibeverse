@@ -1,4 +1,13 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vibeverse
+
+A location-based review and recommendation app built with [Next.js](https://nextjs.org) that helps users discover and review places.
+
+## Features
+
+- AI-powered chat interface for creating place reviews
+- Recommendation system for finding places based on user preferences
+- Mobile-optimized web layout
+- Persistent data storage using Orama
 
 ## Getting Started
 
@@ -16,9 +25,41 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app`: Contains all the Next.js pages and routes
+  - `landing1`, `landing2`: Different landing page versions
+  - `recommendation`: Page for getting place recommendations
+  - `visit`: Page for visiting and reviewing places
+- `src/components`: Reusable UI components
+- `src/db`: Database models and data access layer
+- `src/lib`: Utility functions and shared code
+
+## Data Models
+
+The app uses two main data models:
+
+- Places: Venue information such as name, location, type
+- Reviews: User reviews with ratings for different aspects of a place
+
+## Scripts
+
+```bash
+# Run the development server with Turbopack
+npm run dev
+
+# Build for production
+npm run build
+
+# Start the production server
+npm run start
+
+# Lint the codebase
+npm run lint
+
+# Seed the database with sample data
+npm run seed
+```
 
 ## Learn More
 
@@ -27,10 +68,8 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
