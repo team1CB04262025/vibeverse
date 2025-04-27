@@ -2,8 +2,8 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import ChatBox from "@/components/ChatBox";
 import { places } from "@/db/scripts/seedPlaces";
+import ReviewChatBox from "@/components/ReviewChatBox";
 
 type Place = (typeof places)[number];
 
@@ -59,7 +59,9 @@ export default function VisitPlaceClient({ place }: VisitPlaceClientProps) {
       </div>
 
       {/* ChatBox pop up */}
-      {isChatOpen && <ChatBox onClose={() => setIsChatOpen(false)} />}
+      {isChatOpen && (
+        <ReviewChatBox place={place} onClose={() => setIsChatOpen(false)} />
+      )}
     </div>
   );
 }
