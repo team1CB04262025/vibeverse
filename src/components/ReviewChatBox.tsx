@@ -8,7 +8,7 @@ import { useChat } from "@ai-sdk/react";
 import { Message } from "ai";
 import { Review } from "@/db/reviews";
 import Link from "next/link";
-
+import Image from "next/image";
 function TypingDots() {
   return (
     <div className="flex items-center justify-start px-4 py-2">
@@ -171,9 +171,9 @@ export default function ReviewChatBox({
         <div className="relative flex justify-end items-center px-4 py-2">
           <button
             onClick={onClose}
-            className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition"
+            className="p-2 cursor-pointer bg-gray-300 rounded-full hover:bg-gray-400 transition"
           >
-            <X size={20} className="text-gray-600" />
+            <X size={20} className="text-white" />
           </button>
         </div>
 
@@ -189,7 +189,7 @@ export default function ReviewChatBox({
               <div
                 className={`max-w-[70%] px-4 py-2 rounded-2xl whitespace-pre-wrap text-sm ${
                   message.role === "user"
-                    ? "bg-[#1C1C5B] text-white rounded-br-none"
+                    ? "bg-[#232166] text-white rounded-br-none"
                     : "bg-gray-100 text-gray-800 rounded-bl-none"
                 }`}
               >
@@ -227,22 +227,25 @@ export default function ReviewChatBox({
         </div>
 
         {/* 입력창 */}
-        <div className="sticky bottom-0 bg-white p-4">
-          <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+        <div className="sticky bottom-5 bg-white p-4 m-2">
+          <form
+            onSubmit={handleFormSubmit}
+            className="relative flex items-center gap-2"
+          >
             <input
               type="text"
               value={input}
               onChange={handleInputChange}
               placeholder="I think..."
-              className="flex-1 p-3 border rounded-full border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#1C1C5B]"
+              className="text-gray-500 bg-gray-50 flex-1 p-3 pl-4 pr-12 border rounded-lg border-[#232166] focus:outline-none focus:ring-1 focus:ring-[#232166]"
               disabled={isLoading || isReviewComplete}
             />
             <button
               type="submit"
-              className="p-2 text-[#1C1C5B]"
+              className="absolute right-6"
               disabled={isLoading || !input.trim() || isReviewComplete}
             >
-              <Send size={20} />
+              <Image src="/Symbols.svg" alt="mic" width={30} height={30} />
             </button>
           </form>
         </div>
