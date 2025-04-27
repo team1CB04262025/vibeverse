@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       const nonNullFields = Object.values(reviewData).filter(
         (value) => value !== null
       ).length;
-      const isReviewComplete = nonNullFields > totalFields / 2.5;
+      const isReviewComplete = nonNullFields > totalFields / 3;
 
       let followUpQuestion;
 

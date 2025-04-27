@@ -43,7 +43,7 @@ function RecommendationCard({
   );
 }
 
-export default function RecommendationPage() {
+export default function RecommendationChatBox() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -125,13 +125,7 @@ export default function RecommendationPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-3xl mx-auto">
-      <div className="p-4 bg-gray-50 shadow">
-        <h1 className="text-2xl font-bold text-center">
-          Place Recommendations
-        </h1>
-      </div>
-
+    <div className="flex flex-col max-w-3xl mx-auto h-screen space-between">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
