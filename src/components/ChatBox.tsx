@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { Place } from "@/db/places";
 interface Message {
   id: number;
   sender: "user" | "assistant";
@@ -22,19 +22,19 @@ function TypingDots() {
   );
 }
 
-export default function ChatBox({ onClose }: { onClose: () => void }) {
+export default function ChatBox({
+  onClose,
+  place,
+}: {
+  onClose: () => void;
+  place: Place;
+}) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: "assistant",
-      text: "How was the Victrola Coffee Roasters?",
+      text: `How was ${place.name}?`,
     },
-    {
-      id: 2,
-      sender: "user",
-      text: "I really liked it! The atmosphere was great.",
-    },
-    { id: 3, sender: "assistant", text: "Typing..." },
   ]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);

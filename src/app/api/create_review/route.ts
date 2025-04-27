@@ -7,7 +7,7 @@ import {
 } from "@/lib/llm/reviewsAgent";
 import { Review } from "@/db/reviews";
 import { insert } from "@orama/orama";
-import { reviewsDb } from "@/db";
+import { persistAllDb, reviewsDb } from "@/db";
 import { v4 as uuidv4 } from "uuid";
 
 const model = google("gemini-2.0-flash-001");
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       const nonNullFields = Object.values(reviewData).filter(
         (value) => value !== null
       ).length;
-      const isReviewComplete = nonNullFields > totalFields / 2;
+      const isReviewComplete = nonNullFields > totalFields / 2.5;
 
       let followUpQuestion;
 
@@ -115,9 +115,9 @@ export async function POST(req: Request) {
           // Insert the review into the database
           await insert(reviewsDb, reviewData as unknown as Review);
           console.log("Review inserted into database:", reviewData.id);
-
-          // Uncomment for demo purposes
-          // persistAllDb()
+          console.log("Review placeId:", reviewData.placeId);
+          // TODO: Uncomment for demo purposes
+          persistAllDb();
         } catch (error) {
           console.error("Error inserting review into database:", error);
         }
