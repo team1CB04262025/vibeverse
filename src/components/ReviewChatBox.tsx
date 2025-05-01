@@ -209,7 +209,7 @@ export default function ReviewChatBox({
           )}
           <div ref={messagesEndRef} />
           {isReviewComplete && (
-            <div className="flex justify-start gap-4 pt-4 text-[15px]">
+            <div className="flex justify-start gap-4 pt-4 mb-6 text-[15px]">
               <button
                 className="cursor-pointer border border-[#353AF1] text-[#353AF1] rounded-md px-9 py-2 font-semibold"
                 onClick={onClose}
